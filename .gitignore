@@ -1,0 +1,63 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.env
+.env.local
+.env.*.local
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Backend specific
+backend/.env
+
+# Frontend specific
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/*.log
+frontend/.vercel
+frontend/.turbo
+frontend/next-env.d.ts
+
+# Docker
+docker-compose.override.yml
+
+# Qdrant data
+qdrant_data/
+
+# Supabase
+.supabase/
+
+# Ingestion
+ingestion/__pycache__/
+
+# TypeScript
+*.tsbuildinfo

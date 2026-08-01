@@ -1,0 +1,33 @@
+# Core FastAPI
+fastapi==0.111.*
+uvicorn[standard]==0.30.*
+
+# Data validation & settings
+pydantic==2.*
+python-dotenv==1.*
+
+# LLM & Agent Orchestration
+anthropic==0.39.*
+langgraph==0.2.*
+langchain-anthropic==0.1.*
+langchain-text-splitters==0.2.*
+
+# Vector Database
+qdrant-client==1.9.*
+
+# Relational Database (Supabase)
+supabase==2.*
+
+# Document Processing (for ingestion)
+unstructured==0.14.*
+
+# Embeddings
+voyageai==0.2.*
+
+# HTTP Client & Retry Logic
+httpx==0.27.*
+tenacity==8.*
+
+# Testing
+pytest==8.*
+pytest-asyncio==0.23.*

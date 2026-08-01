@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand */
+  --color-primary: #E8722C;
+  --color-primary-hover: #D4611F;
+  --color-primary-light: #FBD9BD;
+  --color-accent: #F2A65A;
+  --color-accent-soft: #FFF1E0;
+
+  /* Light mode (default) */
+  --bg-base: #FDFBF8;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #F5EFE8;
+  --text-primary: #2B2116;
+  --text-secondary: #6B5D4F;
+  --border: #E8DFD3;
+  --success: #3FA65D;
+  --warning: #E0A62A;
+  --danger: #D64545;
+
+  /* Typography */
+  --font-family-base: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg-base: #1C1712;
+  --bg-surface: #2A2219;
+  --bg-muted: #332A1F;
+  --text-primary: #F5EFE8;
+  --text-secondary: #C4B7A6;
+  --border: #453A2C;
+  --success: #5FC97D;
+  --warning: #F0BE55;
+  --danger: #E86A6A;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-family-base);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary-light);
+  color: var(--text-primary);
+}
