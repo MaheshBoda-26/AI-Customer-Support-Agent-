@@ -6,7 +6,7 @@ import logging
 from typing import List, Optional
 from uuid import uuid4
 
-from anthropic import Anthropic
+from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.config import settings
@@ -24,8 +24,11 @@ from app.db.models import MessageCreate, MessageRole, TicketCreate, HandoffCreat
 
 logger = logging.getLogger(__name__)
 
-# Initialize clients
-anthropic_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+# Initialize OpenRouter client
+openrouter_client = OpenAI(
+    api_key=settings.OPENROUTER_API_KEY,
+    base_url=settings.OPENROUTER_BASE_URL,
+)
 retriever = get_retriever()
 supabase = get_supabase_client()
 agent_config = AgentConfig(confidence_threshold=settings.CONFIDENCE_THRESHOLD)
@@ -38,7 +41,7 @@ def classify_intent(state: AgentState) -> AgentState:
     prompt = f"{INTENT_CLASSIFICATION_PROMPT}\n\nUser message: {state['user_input']}"
 
     try:
-        response = _call_claude(prompt, model="claude-3-haiku-20240307", max_tokens=200)
+        response = _call_openrouter(prompt, model=settings.OPENROUTER_FAST_MODEL, max_tokens=200)
         result = json.loads(response.strip())
 
         state["intent"] = result.get("intent", "question")
@@ -80,7 +83,7 @@ def retrieve_context(state: AgentState) -> AgentState:
 
 
 def generate_response(state: AgentState) -> AgentState:
-    """Generate response using Claude with retrieved context."""
+    """Generate response using OpenRouter with retrieved context."""
     logger.info(f"Generating response for conversation {state['conversation_id']}")
 
     # Build conversation history
@@ -99,9 +102,9 @@ def generate_response(state: AgentState) -> AgentState:
     )
 
     try:
-        response = _call_claude(prompt, model="claude-3-5-sonnet-20241022", max_tokens=1000)
+        response = _call_openrouter(prompt, model=settings.OPENROUTER_MODEL, max_tokens=1000)
         state["response"] = response.strip()
-        state["token_usage"] = {"model": "claude-3-5-sonnet-20241022"}  # Would track actual usage
+        state["token_usage"] = {"model": settings.OPENROUTER_MODEL}
     except Exception as e:
         logger.error(f"Response generation failed: {e}")
         state["response"] = "I'm sorry, I'm having trouble generating a response right now. Please try again."
@@ -128,7 +131,7 @@ Retrieval Failed: {state['retrieval_failed']}
     prompt = f"{ROUTE_DECISION_PROMPT}\n\nContext:\n{context}"
 
     try:
-        response = _call_claude(prompt, model="claude-3-haiku-20240307", max_tokens=300)
+        response = _call_openrouter(prompt, model=settings.OPENROUTER_FAST_MODEL, max_tokens=300)
         result = json.loads(response.strip())
 
         state["ticket_needed"] = result.get("ticket_needed", False)
@@ -255,11 +258,11 @@ async def persist_node(state: AgentState) -> AgentState:
     stop=stop_after_attempt(3),
     reraise=True
 )
-def _call_claude(prompt: str, model: str, max_tokens: int) -> str:
-    """Call Claude API with retry logic."""
-    response = anthropic_client.messages.create(
+def _call_openrouter(prompt: str, model: str, max_tokens: int) -> str:
+    """Call OpenRouter API with retry logic."""
+    response = openrouter_client.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
         messages=[{"role": "user", "content": prompt}],
     )
-    return response.content[0].text
+    return response.choices[0].message.content

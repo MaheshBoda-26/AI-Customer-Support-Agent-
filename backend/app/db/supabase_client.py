@@ -144,6 +144,13 @@ class SupabaseClient:
         result = query.execute()
         return [Ticket(**ticket) for ticket in result.data]
 
+    async def get_ticket_by_id(self, ticket_id: UUID) -> Optional[Ticket]:
+        """Get a specific ticket by ID."""
+        result = self.client.table("tickets").select("*").eq("id", str(ticket_id)).execute()
+        if result.data:
+            return Ticket(**result.data[0])
+        return None
+
     async def update_ticket_status(
         self,
         ticket_id: UUID,
@@ -180,6 +187,45 @@ class SupabaseClient:
             .execute()
         )
         return [Handoff(**h) for h in result.data]
+
+    async def get_handoff_by_conversation(self, conversation_id: UUID) -> Optional[Handoff]:
+        """Get handoff for a specific conversation."""
+        result = (
+            self.client.table("handoffs")
+            .select("*")
+            .eq("conversation_id", str(conversation_id))
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if result.data:
+            return Handoff(**result.data[0])
+        return None
+
+    # Realtime subscription helpers (for admin dashboard)
+    def subscribe_to_tickets(self, callback):
+        """Subscribe to realtime ticket changes."""
+        return (
+            self.client.table("tickets")
+            .on("*", callback)
+            .subscribe()
+        )
+
+    def subscribe_to_handoffs(self, callback):
+        """Subscribe to realtime handoff changes."""
+        return (
+            self.client.table("handoffs")
+            .on("*", callback)
+            .subscribe()
+        )
+
+    def subscribe_to_conversations(self, callback):
+        """Subscribe to realtime conversation changes."""
+        return (
+            self.client.table("conversations")
+            .on("*", callback)
+            .subscribe()
+        )
 
 
 # Singleton instance
