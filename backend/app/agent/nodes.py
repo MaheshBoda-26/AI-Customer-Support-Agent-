@@ -24,10 +24,10 @@ from app.db.models import MessageCreate, MessageRole, TicketCreate, HandoffCreat
 
 logger = logging.getLogger(__name__)
 
-# Initialize OpenRouter client
-openrouter_client = OpenAI(
-    api_key=settings.OPENROUTER_API_KEY,
-    base_url=settings.OPENROUTER_BASE_URL,
+# Initialize NVIDIA NIM client
+nvidia_nim_client = OpenAI(
+    api_key=settings.NVIDIA_NIM_API_KEY,
+    base_url=settings.NVIDIA_NIM_BASE_URL,
 )
 retriever = get_retriever()
 supabase = get_supabase_client()
@@ -41,7 +41,7 @@ def classify_intent(state: AgentState) -> AgentState:
     prompt = f"{INTENT_CLASSIFICATION_PROMPT}\n\nUser message: {state['user_input']}"
 
     try:
-        response = _call_openrouter(prompt, model=settings.OPENROUTER_FAST_MODEL, max_tokens=200)
+        response = _call_nvidia_nim(prompt, model=settings.NVIDIA_NIM_FAST_MODEL, max_tokens=200)
         result = json.loads(response.strip())
 
         state["intent"] = result.get("intent", "question")
@@ -64,13 +64,19 @@ def retrieve_context(state: AgentState) -> AgentState:
     logger.info(f"Retrieving context for conversation {state['conversation_id']}")
 
     try:
+        # Use detected language, but default to "en" if not set or invalid
+        lang = state.get("detected_language", "en")
+        if lang not in ["en", "es", "fr", "de", "ja", "zh", "ko", "pt", "it", "ru"]:
+            lang = "en"
+
         chunks: List[RetrievedChunk] = retriever.retrieve(
             query=state["user_input"],
             top_k=agent_config.default_top_k,
-            language=state["detected_language"],
+            language=lang,
         )
         state["retrieved_docs"] = [chunk.text for chunk in chunks]
         state["retrieval_failed"] = False
+        logger.info(f"Retrieved chunks: {[c.text[:50] for c in chunks]}")
     except Exception as e:
         logger.error(f"Retrieval failed: {e}")
         state["retrieved_docs"] = []
@@ -83,7 +89,7 @@ def retrieve_context(state: AgentState) -> AgentState:
 
 
 def generate_response(state: AgentState) -> AgentState:
-    """Generate response using OpenRouter with retrieved context."""
+    """Generate response using NVIDIA NIM with retrieved context."""
     logger.info(f"Generating response for conversation {state['conversation_id']}")
 
     # Build conversation history
@@ -102,9 +108,9 @@ def generate_response(state: AgentState) -> AgentState:
     )
 
     try:
-        response = _call_openrouter(prompt, model=settings.OPENROUTER_MODEL, max_tokens=1000)
+        response = _call_nvidia_nim(prompt, model=settings.NVIDIA_NIM_MODEL, max_tokens=1000)
         state["response"] = response.strip()
-        state["token_usage"] = {"model": settings.OPENROUTER_MODEL}
+        state["token_usage"] = {"model": settings.NVIDIA_NIM_MODEL}
     except Exception as e:
         logger.error(f"Response generation failed: {e}")
         state["response"] = "I'm sorry, I'm having trouble generating a response right now. Please try again."
@@ -131,7 +137,7 @@ Retrieval Failed: {state['retrieval_failed']}
     prompt = f"{ROUTE_DECISION_PROMPT}\n\nContext:\n{context}"
 
     try:
-        response = _call_openrouter(prompt, model=settings.OPENROUTER_FAST_MODEL, max_tokens=300)
+        response = _call_nvidia_nim(prompt, model=settings.NVIDIA_NIM_FAST_MODEL, max_tokens=300)
         result = json.loads(response.strip())
 
         state["ticket_needed"] = result.get("ticket_needed", False)
@@ -258,9 +264,9 @@ async def persist_node(state: AgentState) -> AgentState:
     stop=stop_after_attempt(3),
     reraise=True
 )
-def _call_openrouter(prompt: str, model: str, max_tokens: int) -> str:
-    """Call OpenRouter API with retry logic."""
-    response = openrouter_client.chat.completions.create(
+def _call_nvidia_nim(prompt: str, model: str, max_tokens: int) -> str:
+    """Call NVIDIA NIM API with retry logic."""
+    response = nvidia_nim_client.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
         messages=[{"role": "user", "content": prompt}],

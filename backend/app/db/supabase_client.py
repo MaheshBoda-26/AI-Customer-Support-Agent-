@@ -20,6 +20,17 @@ from app.db.models import (
 logger = logging.getLogger(__name__)
 
 
+def _uuid_to_str(obj):
+    """Recursively convert UUIDs to strings in a dict."""
+    if isinstance(obj, UUID):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {k: _uuid_to_str(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_uuid_to_str(v) for v in obj]
+    return obj
+
+
 class SupabaseClient:
     """Wrapper for Supabase database operations."""
 
@@ -52,8 +63,19 @@ class SupabaseClient:
         conversation: ConversationCreate,
     ) -> Conversation:
         """Create a new conversation."""
-        data = conversation.model_dump(exclude_none=True)
-        result = self.client.table("conversations").insert(data).execute()
+        # Convert UUIDs to strings for Supabase
+        data = _uuid_to_str(conversation.model_dump(exclude_none=True))
+
+        result = (
+            self.client
+            .table("conversations")
+            .insert(data)
+            .execute()
+        )
+
+        if not result.data:
+            raise ValueError("Failed to create conversation")
+
         return Conversation(**result.data[0])
 
     async def get_conversation(self, conversation_id: UUID) -> Optional[Conversation]:
@@ -115,20 +137,20 @@ class SupabaseClient:
     # Message operations
     async def save_message(self, message: MessageCreate) -> Message:
         """Save a message to the conversation."""
-        data = message.model_dump()
+        data = _uuid_to_str(message.model_dump())
         result = self.client.table("messages").insert(data).execute()
         return Message(**result.data[0])
 
     async def save_messages(self, messages: List[MessageCreate]) -> List[Message]:
         """Bulk save messages."""
-        data = [msg.model_dump() for msg in messages]
+        data = [_uuid_to_str(msg.model_dump()) for msg in messages]
         result = self.client.table("messages").insert(data).execute()
         return [Message(**msg) for msg in result.data]
 
     # Ticket operations
     async def create_ticket(self, ticket: TicketCreate) -> Ticket:
         """Create a support ticket."""
-        data = ticket.model_dump()
+        data = _uuid_to_str(ticket.model_dump())
         result = self.client.table("tickets").insert(data).execute()
         return Ticket(**result.data[0])
 
@@ -170,7 +192,7 @@ class SupabaseClient:
     # Handoff operations
     async def create_handoff(self, handoff: HandoffCreate) -> Handoff:
         """Create a handoff/escalation record."""
-        data = handoff.model_dump()
+        data = _uuid_to_str(handoff.model_dump())
         result = self.client.table("handoffs").insert(data).execute()
         return Handoff(**result.data[0])
 

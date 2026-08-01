@@ -14,6 +14,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def ensure_collection(client, collection_name: str, vector_size: int = 1024):
+    """Create Qdrant collection if it doesn't exist."""
+    from qdrant_client.models import VectorParams, Distance
+
+    collections = client.get_collections().collections
+    if not any(c.name == collection_name for c in collections):
+        logger.info(f"Creating collection '{collection_name}'")
+        client.create_collection(
+            collection_name=collection_name,
+            vectors_config=VectorParams(
+                size=vector_size,
+                distance=Distance.COSINE,
+            ),
+        )
+    else:
+        logger.info(f"Collection '{collection_name}' already exists")
+
+
 @router.post("/ingest")
 async def ingest_endpoint(
     request: IngestRequest,
@@ -52,6 +70,9 @@ async def ingest_endpoint(
             api_key=settings.QDRANT_API_KEY if settings.QDRANT_API_KEY else None,
         )
 
+        # Ensure collection exists
+        ensure_collection(client, "kb_chunks", vector_size=1024)
+
         points = []
         for chunk, vector in zip(chunks, vectors):
             points.append(PointStruct(
@@ -83,7 +104,6 @@ async def ingest_endpoint(
     except Exception as e:
         logger.error(f"Ingest failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
-
 
 @router.post("/ingest/batch")
 async def ingest_batch_endpoint(

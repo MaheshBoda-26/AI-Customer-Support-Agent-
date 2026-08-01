@@ -1,0 +1,10 @@
+Frequently Asked Questions:
+
+Q: How do I reset my password?
+A: Click "Forgot Password" on the login page. You'll receive an email with reset instructions.
+
+Q: What payment methods do you accept?
+A: We accept Visa, Mastercard, American Express, PayPal, and Apple Pay.
+
+Q: How long does shipping take?
+A: Standard shipping: 5-7 business days. Express: 2-3 business days. International: 10-14 days.

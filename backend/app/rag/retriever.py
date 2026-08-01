@@ -41,7 +41,7 @@ class QdrantRetriever:
         query: str,
         top_k: int = None,
         language: Optional[str] = None,
-        score_threshold: float = 0.5,
+        score_threshold: float = 0.3,  # Lowered from 0.5 for better recall
     ) -> List[RetrievedChunk]:
         """
         Retrieve relevant chunks for a query.

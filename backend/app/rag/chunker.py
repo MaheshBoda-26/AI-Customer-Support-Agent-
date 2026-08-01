@@ -2,6 +2,7 @@
 Text chunking utilities for document ingestion.
 """
 import logging
+import uuid
 from typing import List, Optional
 from dataclasses import dataclass
 
@@ -60,7 +61,7 @@ def chunk_text(
     document_chunks = []
     for i, chunk in enumerate(chunks):
         if chunk.strip():
-            chunk_id = f"{source}-{i}"
+            chunk_id = str(uuid.uuid4())
             document_chunks.append(DocumentChunk(
                 id=chunk_id,
                 text=chunk.strip(),

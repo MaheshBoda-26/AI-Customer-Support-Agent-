@@ -10,11 +10,11 @@ from pydantic import Field
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # OpenRouter (replaces Anthropic direct)
-    OPENROUTER_API_KEY: str = Field(..., description="OpenRouter API key")
-    OPENROUTER_BASE_URL: str = Field(default="https://openrouter.ai/api/v1", description="OpenRouter API base URL")
-    OPENROUTER_MODEL: str = Field(default="anthropic/claude-3.5-sonnet", description="OpenRouter model to use")
-    OPENROUTER_FAST_MODEL: str = Field(default="anthropic/claude-3-haiku", description="OpenRouter fast model for classification")
+    # NVIDIA NIM (replaces OpenRouter)
+    NVIDIA_NIM_API_KEY: str = Field(..., description="NVIDIA NIM API key")
+    NVIDIA_NIM_BASE_URL: str = Field(default="https://integrate.api.nvidia.com/v1", description="NVIDIA NIM API base URL")
+    NVIDIA_NIM_MODEL: str = Field(default="nvidia/nemotron-3-super", description="NVIDIA NIM model to use")
+    NVIDIA_NIM_FAST_MODEL: str = Field(default="nvidia/nemotron-3-super", description="NVIDIA NIM fast model for classification")
 
     # Qdrant
     QDRANT_URL: str = Field(..., description="Qdrant cluster URL")
