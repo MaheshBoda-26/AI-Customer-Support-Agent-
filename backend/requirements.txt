@@ -4,6 +4,7 @@ uvicorn[standard]==0.30.*
 
 # Data validation & settings
 pydantic==2.*
+pydantic-settings==2.*
 python-dotenv==1.*
 
 # LLM & Agent Orchestration
@@ -19,7 +20,7 @@ qdrant-client==1.9.*
 supabase==2.*
 
 # Document Processing (for ingestion)
-unstructured==0.14.*
+unstructured>=0.18.0
 
 # Embeddings
 voyageai==0.2.*

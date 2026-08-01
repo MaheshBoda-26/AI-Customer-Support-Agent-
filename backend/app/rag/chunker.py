@@ -2,7 +2,7 @@
 Text chunking utilities for document ingestion.
 """
 import logging
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
